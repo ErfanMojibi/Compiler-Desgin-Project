@@ -1,6 +1,4 @@
 
-from secrets import token_bytes
-from tkinter.tix import Tree
 
 
 class Transition:
