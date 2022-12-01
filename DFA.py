@@ -109,7 +109,7 @@ transition_function = [
 
     Transition('s', 'equ_symbol', {'='}),
     Transition('equ_symbol', 'd_equ_symbol', {'='}),
-    Transition('equ_symbol', 'equ_symbol_ac', {'='}),
+    Transition('equ_symbol', 'equ_symbol_ac', all - {'='}),
 
     Transition('s', 'star', {'*'}),
     Transition('star', 'unclosed_comment', {'\\'}, error=True, error_message='not proper comment'),
