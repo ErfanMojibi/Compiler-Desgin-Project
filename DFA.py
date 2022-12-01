@@ -15,6 +15,9 @@ class Transition:
     def get_error_message(self):
         return self.error_message
 
+    def __str__(self):
+        return f"{self.start} => {self.end}; chars:{self.accepted_chars}\n"
+
 
 class DFA:
     def __init__(self, states, alphabet, transition_function, start_state, accept_states, token_types):
@@ -34,6 +37,7 @@ class DFA:
                 self.current_state = transition.end
                 self.error = transition.error
                 self.error_message = transition.error_message
+                break
 
     def is_finished(self):
         return self.current_state in self.accept_states
@@ -90,7 +94,7 @@ dfa_states_reminder = {
 }
 transition_function = [
     Transition('s', 'num', digits),
-    Transition('s', 'id_key', alphabets - letters.union(digits)),
+    Transition('s', 'id_key',  letters.union(digits)),
     Transition('num', 'num', digits),
 
     Transition('s', 'white_space', white_space),
