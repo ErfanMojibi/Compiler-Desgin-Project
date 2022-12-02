@@ -5,6 +5,7 @@ class Transition:
         self.accepted_chars = accepted_chars
         self.error = error
         self.error_message = error_message
+        
 
     def check_transition(self, char):
         return char in self.accepted_chars
@@ -100,14 +101,14 @@ transition_function = [
 
     Transition('s', 'white_space', white_space),
     Transition('white_space', 'white_space', white_space),
-    Transition('white_space', 'white_space_ac', all - white_space),
+    Transition('white_space', 'white_space_ac', alphabets - white_space),
 
     Transition('id_key', 'id_key', letters.union(digits)),
-    Transition('id_key', 'ik_key_ac', all - letters.union(digits)),
+    Transition('id_key', 'id_key_ac', alphabets - letters.union(digits)),
 
     Transition('num', 'num', digits),
     Transition('num', 'num_ac', symbols.union(white_space)),
-    Transition('num', 'num_ac', all - white_space.union(symbols), error=True, error_message='Invalid number'),
+    Transition('num', 'num_ac', alphabets - white_space.union(symbols), error=True, error_message='Invalid number'),
 
     Transition('s', 'equ_symbol', {'='}),
     Transition('equ_symbol', 'd_equ_symbol', {'='}),
@@ -118,7 +119,7 @@ transition_function = [
     Transition('star', 'star_ac', all - {'\\'}),
 
     Transition('s', 'comment', {'/'}),
-    Transition('comment', 'division', all - {'/'}),
+    Transition('comment', 'division', all - {'*'}),
     Transition('comment', 'line_comment', {'/'}),
     Transition('line_comment', 'line_comment', all - {'\n', 5}),
     Transition('line_comment', 'line_comment_2', {5, '\n'}),
@@ -136,7 +137,7 @@ transition_function = [
     Transition('s', 'symbol', symbols - {'=', '/'})
 ]
 
-accept_states = ['unclosed_comment_2', 'long_comment_2', 'unclosed_comment', 'line_comment_2', 'star_ac', 'ik_key_ac'
+accept_states = ['unclosed_comment_2', 'long_comment_2', 'unclosed_comment', 'line_comment_2', 'star_ac', 'id_key_ac'
                 ,'d_equ_symbol', 'num_ac', 'white_space_ac', 'symbol', 'equ_symbol_ac', 'division']
                  
 token_types = {'long_comment_2': 'comment',
@@ -145,7 +146,9 @@ token_types = {'long_comment_2': 'comment',
                'id_key_ac': 'id_key',
                'num_ac': 'number',
                'white_space_ac': 'white_space',
-               'symbol': 'symbol'
+               'symbol': 'symbol',
+               'equ_symbol_ac' : 'symbol',
+               'division' : 'symbol',
                }
 dfa = DFA(dfa_states_reminder.keys(), alphabets, transition_function, 's', accept_states, token_types)
 
