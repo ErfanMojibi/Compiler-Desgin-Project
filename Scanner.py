@@ -48,8 +48,9 @@ class Scanner:
 
         while not self.dfa.is_finished():
             
-            if self.look_ahead == '' and len(buffer) > 0 and self.dfa.current_state != 'white_space':
+            if self.look_ahead == '' and len(buffer) > 0:
                 self.dfa.move(' ')
+                self.dfa.move(chr(5))
             else:
                 self.dfa.move(self.look_ahead)
 
@@ -63,7 +64,11 @@ class Scanner:
         else:
             if self.dfa.error == True:
                 buffer += self.look_ahead
-                self.errors.append((line_number_start, (buffer.replace(' ', '')), self.dfa.error_message))
+                if self.dfa.error_message == 'Unclosed comment':
+                    buffer = buffer[0: 7] + '...'
+                    self.errors.append((line_number_start, buffer, self.dfa.error_message))
+                else:
+                    self.errors.append((line_number_start, (buffer.replace(' ', '')), self.dfa.error_message))
                 # todo copy 
                 buffer = ''
                 self.move_look_ahead()
@@ -90,19 +95,16 @@ class Scanner:
     def export_errors(self):
         line_nu = -1
         out_str = ''
-        is_first_line = True
         if len(self.errors) > 0:
             for er in self.errors:
-                if er[0] != line_nu or line_nu == -1:
-                    if(is_first_line):
-                        out_str += str(er[0]) + '.\t'
-                    else:
-                        out_str += '\n'+ str(er[0]) + '.\t'
-
+                if line_nu == -1:
+                    out_str += str(er[0]) + '.\t'
+                elif er[0] != line_nu :
+                    out_str += '\n' + str(er[0]) + '.\t'
                 line_nu = er[0]
                 out_str += '(' + er[1] + ', ' + er[2] + ') '
         else:
-            out_str = 'There is no lexical error.\n'
+            out_str = 'There is no lexical error.'
         f = open("lexical_errors.txt", "w")
         f.write(out_str)
         f.close()
@@ -110,6 +112,7 @@ class Scanner:
     def export_tokens(self):
         line_number = -1
         is_first_file_line = True
+        
         out_str = ''
         for token in self.tokens:
             token_type = token[1]

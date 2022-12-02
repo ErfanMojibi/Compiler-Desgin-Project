@@ -31,7 +31,7 @@ class SymbolTable:
         for string in self.keywords + self.id :
             out_str += str(i) + '.\t' + string + '\n'
             i += 1
-        print(out_str)
+            
         f_out = open('symbol_table.txt' ,'w')
         f_out.write(out_str)
         f_out.close()

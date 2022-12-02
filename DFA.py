@@ -32,12 +32,18 @@ class DFA:
         self.token_types = token_types
 
     def move(self, current_input):
+        
         for transition in self.transition_function:
             if transition.start == self.current_state and transition.check_transition(current_input):
                 self.current_state = transition.end
                 self.error = transition.error
                 self.error_message = transition.error_message
                 return
+        
+        if current_input == chr(5):
+            self.current_state = 'EOF'
+            return
+        
         if current_input not in alphabets and self.current_state != white_space:
             self.error = True
             self.error_message = 'Invalid input'
@@ -120,8 +126,8 @@ transition_function = [
     Transition('equ_symbol', 'equ_symbol_ac', alphabets - {'='}),
 
     Transition('s', 'star', {'*'}),
-    Transition('star', 'unclosed_comment', {'\\'}, error=True, error_message='not proper comment'),
-    Transition('star', 'star_ac', alphabets - {'\\'}),
+    Transition('star', 'unclosed_comment', {'/'}, error=True, error_message='Unmatched comment'),
+    Transition('star', 'star_ac', alphabets - {'/'}),
 
     Transition('s', 'comment', {'/'}),
     Transition('comment', 'division', alphabets - {'*', '/'}),
@@ -131,13 +137,14 @@ transition_function = [
 
     Transition('comment', 'long_comment', {'*'}),
     Transition('long_comment', 'long_comment_1', {'*'}),
-    Transition('long_comment', 'unclosed_comment_2', {5, ''}, error=True,
-               error_message='unclosed comment reached end of the file'),
+    Transition('long_comment', 'long_comment', all - {chr(5), ''}),
+    Transition('long_comment', 'unclosed_comment_2', {chr(5), ''}, error=True,
+               error_message='Unclosed comment'),
 
     Transition('long_comment_1', 'long_comment_2', {'/'}),
-    Transition('long_comment_1', 'unclosed_comment_2', {5, ''}, error=True,
-               error_message='unclosed comment reached end of the file'),
-    Transition('long_comment_1', 'long_comment', alphabets - {5, '*'}),
+    Transition('long_comment_1', 'unclosed_comment_2', {chr(5), ''}, error=True,
+               error_message='Unclosed comment'),
+    Transition('long_comment_1', 'long_comment', all - {chr(5), '*'}),
 
     Transition('s', 'symbol', symbols - {'=', '/'}),
     Transition('s', 'EOF', {''})
@@ -156,5 +163,6 @@ token_types = {'long_comment_2': 'COMMENT',
                'equ_symbol_ac': 'SYMBOL',
                'd_equ_symbol' : 'SYMBOL',
                'division': 'SYMBOL',
+               'EOF' : 'EOF'
                }
 dfa = DFA(dfa_states_reminder.keys(), alphabets, transition_function, 's', accept_states, token_types)
