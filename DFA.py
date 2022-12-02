@@ -89,7 +89,8 @@ dfa_states_reminder = {
     'long_comment': 10,
     'long_comment_1': 14,
     'long_comment_2': 15,
-
+    'EOF' : 1000,
+    
     'unclosed_comment_2': 19,
 }
 transition_function = [
@@ -131,11 +132,12 @@ transition_function = [
                error_message='unclosed comment reached end of the file'),
     Transition('long_comment_1', 'long_comment', all - {5, '*'}),
 
-    Transition('s', 'symbol', symbols - {'=', '/'})
+    Transition('s', 'symbol', symbols - {'=', '/'}),
+    Transition('s', 'EOF', {5})
 ]
 
 accept_states = ['unclosed_comment_2', 'long_comment_2', 'unclosed_comment', 'line_comment_2', 'star_ac', 'id_key_ac',
-                 'd_equ_symbol', 'num_ac', 'white_space_ac', 'symbol', 'equ_symbol_ac', 'division']
+                 'd_equ_symbol', 'num_ac', 'white_space_ac', 'symbol', 'equ_symbol_ac', 'division', 'EOF']
 
 token_types = {'long_comment_2': 'COMMENT',
                'line_comment_2': 'COMMENT',
