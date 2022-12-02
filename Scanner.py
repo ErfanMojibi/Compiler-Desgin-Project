@@ -19,7 +19,9 @@ class Scanner:
 
     def move_look_ahead(self):
         if not self.reach_end_of_file:
-            return
+            self.look_ahead = self.file.read(1)
+            if self.look_ahead == None:
+                self.reach_end_of_file = True
         else:
             self.look_ahead = ''
             if self.look_ahead == '\n':
@@ -28,12 +30,25 @@ class Scanner:
     def get_line_number(self):
         return self.line_no
 
+    def get_symbol_table(self):
+        return self.symbol_table
+
+    def get_errors(self):
+        return self.errors
+    
     def get_next_token(self):
         self.dfa.reset()
         buffer = ''
+        
+        if self.look_ahead == None and self.reach_end_of_file == False:
+            self.move_look_ahead()
+        
         while not self.dfa.is_finished():
-            buffer += self.look_ahead
             self.dfa.move(self.look_ahead)
+            
+            if not self.dfa.is_finished():
+                buffer += self.look_ahead
+                self.move_look_ahead()
 
         if self.dfa.get_token_type() == 'id_key':
             if self.symbol_table.get_string_token_type(buffer) == 'ID':
@@ -42,10 +57,12 @@ class Scanner:
         else:
             if self.dfa.error == True:
                 self.errors.append((self.line_no, self.dfa.error_message))
-                while self.look_ahead not in self.panic_chars:
-                    self.move_look_ahead()
+                buffer = ''
+                self.move_look_ahead()
+                return None
             else:
                 if self.dfa.current_state in ['long_comment_2', 'line_comment_2', 'd_equ_symbol', 'symbol']:
+                    buffer += self.look_ahead
                     self.move_look_ahead()
                 return (self.dfa.get_token_type(), buffer)
 
