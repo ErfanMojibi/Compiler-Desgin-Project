@@ -47,15 +47,16 @@ class Scanner:
         line_number_start = self.line_no
 
         while not self.dfa.is_finished():
+            # if self.reach_end_of_file:
+            #     return
             self.dfa.move(self.look_ahead)
 
             if not self.dfa.is_finished():
                 buffer += self.look_ahead
                 self.move_look_ahead()
 
-        if self.dfa.get_token_type() == 'id_key':
-            if self.symbol_table.get_string_token_type(buffer) == 'ID':
-                self.symbol_table.insert_id(buffer)
+        if self.dfa.get_token_type() == 'ID_KEY':
+            self.symbol_table.insert_id(buffer)
             return (line_number_start, self.symbol_table.get_string_token_type(buffer), buffer)
         else:
             if self.dfa.error == True:
@@ -72,7 +73,9 @@ class Scanner:
 
     def get_all_tokens_and_export(self):
         while not self.reach_end_of_file:
-            self.tokens.append(self.get_next_token())
+            token = self.get_next_token()
+            print(token)
+            self.tokens.append(token)
 
         self.export_tokens()
         self.symbol_table.export_symbol_table()
@@ -90,6 +93,9 @@ class Scanner:
                 out_str += '(' + er[1] + ',' + er[2] + ') '
         else:
             out_str = 'There is no lexical error.\n'
+        f = open("lexical_errors.txt", "w")
+        f.write(out_str)
+        f.close()
 
     def export_tokens(self):
         line_number = -1
@@ -106,11 +112,6 @@ class Scanner:
                     else:
                         out_str += '\n' + str(token[0]) + '.\t'
                 line_number = token[0]
-                if token[1] == 'ID_KEY':
-                    if token[2] in self.symbol_table.keywords:
-                        token_type = "KEYWORD"
-                    else:
-                        token_type = "ID"
                 out_str += '(' + token_type + ', ' + token[2] + ') '
         token_file = open('tokens.txt', 'w')
         token_file.write(out_str)

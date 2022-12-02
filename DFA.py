@@ -116,7 +116,7 @@ transition_function = [
     Transition('star', 'star_ac', all - {'\\'}),
 
     Transition('s', 'comment', {'/'}),
-    Transition('comment', 'division', all - {'*'}),
+    Transition('comment', 'division', all - {'*', '/'}),
     Transition('comment', 'line_comment', {'/'}),
     Transition('line_comment', 'line_comment', all - {'\n', 5}),
     Transition('line_comment', 'line_comment_2', {5, '\n'}),
@@ -148,6 +148,3 @@ token_types = {'long_comment_2': 'COMMENT',
                'division': 'SYMBOL',
                }
 dfa = DFA(dfa_states_reminder.keys(), alphabets, transition_function, 's', accept_states, token_types)
-
-dfa.move("/")
-print(dfa.current_state)
