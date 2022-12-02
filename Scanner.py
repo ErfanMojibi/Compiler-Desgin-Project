@@ -47,9 +47,11 @@ class Scanner:
         line_number_start = self.line_no
 
         while not self.dfa.is_finished():
-            # if self.reach_end_of_file:
-            #     return
-            self.dfa.move(self.look_ahead)
+            
+            if self.look_ahead == '' and len(buffer) > 0 and self.dfa.current_state != 'white_space':
+                self.dfa.move(' ')
+            else:
+                self.dfa.move(self.look_ahead)
 
             if not self.dfa.is_finished():
                 buffer += self.look_ahead
@@ -60,7 +62,8 @@ class Scanner:
             return (line_number_start, self.symbol_table.get_string_token_type(buffer), buffer)
         else:
             if self.dfa.error == True:
-                self.errors.append((line_number_start, (buffer), self.dfa.error_message))
+                buffer += self.look_ahead
+                self.errors.append((line_number_start, (buffer.replace(' ', '')), self.dfa.error_message))
                 # todo copy 
                 buffer = ''
                 self.move_look_ahead()
@@ -85,12 +88,11 @@ class Scanner:
         self.export_errors()
 
     def export_errors(self):
-        line_nu = 0
+        line_nu = -1
         out_str = ''
         if len(self.errors) > 0:
-            line_nu = self.errors[0][0]
             for er in self.errors:
-                if er[0] != line_nu:
+                if er[0] != line_nu or line_nu == -1:
                     out_str += '\n' + str(er[0]) + '.\t'
                 line_nu = er[0]
                 out_str += '(' + er[1] + ',' + er[2] + ') '
