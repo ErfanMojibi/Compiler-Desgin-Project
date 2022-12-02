@@ -112,7 +112,7 @@ transition_function = [
 
     Transition('s', 'white_space', white_space),
     Transition('white_space', 'white_space', white_space),
-    Transition('white_space', 'white_space_ac', (alphabets - white_space).union({''})),
+    Transition('white_space', 'white_space_ac', all - white_space),
 
     Transition('id_key', 'id_key', letters.union(digits)),
     Transition('id_key', 'id_key_ac', alphabets - letters.union(digits)),
