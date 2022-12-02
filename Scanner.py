@@ -90,12 +90,17 @@ class Scanner:
     def export_errors(self):
         line_nu = -1
         out_str = ''
+        is_first_line = True
         if len(self.errors) > 0:
             for er in self.errors:
                 if er[0] != line_nu or line_nu == -1:
-                    out_str += '\n' + str(er[0]) + '.\t'
+                    if(is_first_line):
+                        out_str += str(er[0]) + '.\t'
+                    else:
+                        out_str += '\n'+ str(er[0]) + '.\t'
+
                 line_nu = er[0]
-                out_str += '(' + er[1] + ',' + er[2] + ') '
+                out_str += '(' + er[1] + ', ' + er[2] + ') '
         else:
             out_str = 'There is no lexical error.\n'
         f = open("lexical_errors.txt", "w")
@@ -105,7 +110,6 @@ class Scanner:
     def export_tokens(self):
         line_number = -1
         is_first_file_line = True
-        print(self.tokens)
         out_str = ''
         for token in self.tokens:
             token_type = token[1]
