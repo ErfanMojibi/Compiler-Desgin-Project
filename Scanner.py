@@ -69,13 +69,16 @@ class Scanner:
                 if self.dfa.current_state in ['long_comment_2', 'line_comment_2', 'd_equ_symbol', 'symbol']:
                     buffer += self.look_ahead
                     self.move_look_ahead()
-                return (line_number_start, self.dfa.get_token_type(), buffer)
+                if self.dfa.get_token_type() != 'EOF':
+                    return (line_number_start, self.dfa.get_token_type(), buffer)
+                else:
+                    return None
 
     def get_all_tokens_and_export(self):
         while not self.reach_end_of_file:
             token = self.get_next_token()
-            print(token)
-            self.tokens.append(token)
+            if token != None:
+                self.tokens.append(token)
 
         self.export_tokens()
         self.symbol_table.export_symbol_table()
