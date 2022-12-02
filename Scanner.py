@@ -36,19 +36,19 @@ class Scanner:
 
     def get_errors(self):
         return self.errors
-    
+
     def get_next_token(self):
         self.dfa.reset()
         buffer = ''
-        
+
         if self.look_ahead == None and self.reach_end_of_file == False:
             self.move_look_ahead()
-        
+
         line_number_start = self.line_no
-        
+
         while not self.dfa.is_finished():
             self.dfa.move(self.look_ahead)
-            
+
             if not self.dfa.is_finished():
                 buffer += self.look_ahead
                 self.move_look_ahead()
@@ -56,7 +56,7 @@ class Scanner:
         if self.dfa.get_token_type() == 'id_key':
             if self.symbol_table.get_string_token_type(buffer) == 'ID':
                 self.symbol_table.insert_id(buffer)
-            return (line_number_start ,self.symbol_table.get_string_token_type(buffer), buffer)
+            return (line_number_start, self.symbol_table.get_string_token_type(buffer), buffer)
         else:
             if self.dfa.error == True:
                 self.errors.append((line_number_start, (buffer), self.dfa.error_message))
@@ -68,16 +68,16 @@ class Scanner:
                 if self.dfa.current_state in ['long_comment_2', 'line_comment_2', 'd_equ_symbol', 'symbol']:
                     buffer += self.look_ahead
                     self.move_look_ahead()
-                return (line_number_start ,self.dfa.get_token_type(), buffer)
+                return (line_number_start, self.dfa.get_token_type(), buffer)
 
     def get_all_tokens_and_export(self):
         while not self.reach_end_of_file:
             self.tokens.append(self.get_next_token())
-        
+
         self.export_tokens()
         self.symbol_table.export_symbol_table()
         self.export_errors()
-    
+
     def export_errors(self):
         line_nu = 0
         out_str = ''
@@ -91,18 +91,27 @@ class Scanner:
         else:
             out_str = 'There is no lexical error.\n'
 
-
-    
     def export_tokens(self):
         line_number = -1
-
+        is_first_file_line = True
+        print(self.tokens)
         out_str = ''
         for token in self.tokens:
-            if token[1] != 'white_space' and token[1] != 'comment':
+            token_type = token[1]
+            if token[1] != 'white_space' and token[1] != 'COMMENT':
                 if token[0] != line_number:
-                    out_str += '\n' + str(token[0]) + '.\t'
+                    if (is_first_file_line):
+                        out_str += str(token[0]) + '.\t'
+                        is_first_file_line = False
+                    else:
+                        out_str += '\n' + str(token[0]) + '.\t'
                 line_number = token[0]
-                out_str += '(' + token[1] + ',' + token[2] + ') '
+                if token[1] == 'ID_KEY':
+                    if token[2] in self.symbol_table.keywords:
+                        token_type = "KEYWORD"
+                    else:
+                        token_type = "ID"
+                out_str += '(' + token_type + ', ' + token[2] + ') '
         token_file = open('tokens.txt', 'w')
         token_file.write(out_str)
         token_file.close()

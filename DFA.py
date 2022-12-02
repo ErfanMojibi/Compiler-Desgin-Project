@@ -5,7 +5,6 @@ class Transition:
         self.accepted_chars = accepted_chars
         self.error = error
         self.error_message = error_message
-        
 
     def check_transition(self, char):
         return char in self.accepted_chars
@@ -61,7 +60,6 @@ symbols = {';', ':', '(', ')', '[', ']', '{', '}', '+', '-', '*', '/', '<', '=='
 white_space = {' ', '\n', '\t', '\r', '\f', '\v'}
 extra_symbols = {'#'}
 
-
 alphabets = digits.union(letters, symbols, white_space)
 
 all = {chr(i) for i in range(256)}
@@ -72,7 +70,7 @@ dfa_states_reminder = {
     'num_ac': 2,
     'white_space': 16,
     'id_key': 3,
-    'division' : 50,
+    'division': 50,
     'id_key_ac': 4,
 
     'white_space_ac': 21,
@@ -96,8 +94,7 @@ dfa_states_reminder = {
 }
 transition_function = [
     Transition('s', 'num', digits),
-    Transition('s', 'id_key',  letters),
-    
+    Transition('s', 'id_key', letters),
 
     Transition('s', 'white_space', white_space),
     Transition('white_space', 'white_space', white_space),
@@ -129,7 +126,7 @@ transition_function = [
     Transition('long_comment', 'unclosed_comment_2', {5}, error=True,
                error_message='unclosed comment reached end of the file'),
 
-    Transition('long_comment_1', 'long_comment_2', {'\\'}),
+    Transition('long_comment_1', 'long_comment_2', {'/'}),
     Transition('long_comment_1', 'unclosed_comment_2', {5}, error=True,
                error_message='unclosed comment reached end of the file'),
     Transition('long_comment_1', 'long_comment', all - {5, '*'}),
@@ -137,18 +134,18 @@ transition_function = [
     Transition('s', 'symbol', symbols - {'=', '/'})
 ]
 
-accept_states = ['unclosed_comment_2', 'long_comment_2', 'unclosed_comment', 'line_comment_2', 'star_ac', 'id_key_ac'
-                ,'d_equ_symbol', 'num_ac', 'white_space_ac', 'symbol', 'equ_symbol_ac', 'division']
-                 
-token_types = {'long_comment_2': 'comment',
-               'line_comment_2': 'comment',
-               'star_ac': 'symbol',
-               'id_key_ac': 'id_key',
-               'num_ac': 'number',
+accept_states = ['unclosed_comment_2', 'long_comment_2', 'unclosed_comment', 'line_comment_2', 'star_ac', 'id_key_ac',
+                 'd_equ_symbol', 'num_ac', 'white_space_ac', 'symbol', 'equ_symbol_ac', 'division']
+
+token_types = {'long_comment_2': 'COMMENT',
+               'line_comment_2': 'COMMENT',
+               'star_ac': 'SYMBOL',
+               'id_key_ac': 'ID_KEY',
+               'num_ac': 'NUM',
                'white_space_ac': 'white_space',
-               'symbol': 'symbol',
-               'equ_symbol_ac' : 'symbol',
-               'division' : 'symbol',
+               'symbol': 'SYMBOL',
+               'equ_symbol_ac': 'SYMBOL',
+               'division': 'SYMBOL',
                }
 dfa = DFA(dfa_states_reminder.keys(), alphabets, transition_function, 's', accept_states, token_types)
 
