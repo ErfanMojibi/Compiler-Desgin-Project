@@ -43,7 +43,8 @@ class Scanner:
 
         if self.look_ahead == None and self.reach_end_of_file == False:
             self.move_look_ahead()
-
+        if self.reach_end_of_file == True:
+            return (line_number_start,'EOF', '$')
         line_number_start = self.line_no
 
         while not self.dfa.is_finished():
