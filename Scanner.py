@@ -41,14 +41,14 @@ class Scanner:
         self.dfa.reset()
         buffer = ''
 
-        if self.look_ahead == None and self.reach_end_of_file == False:
+        if self.look_ahead is None and not self.reach_end_of_file:
             self.move_look_ahead()
 
         line_number_start = self.line_no
-        if self.reach_end_of_file == True:
-            return (line_number_start,'EOF', '$')
+        if self.reach_end_of_file:
+            return line_number_start, 'EOF', '$'
         while not self.dfa.is_finished():
-            
+
             if self.look_ahead == '' and len(buffer) > 0:
                 self.dfa.move(' ')
                 self.dfa.move(chr(5))
@@ -61,9 +61,9 @@ class Scanner:
 
         if self.dfa.get_token_type() == 'ID_KEY':
             self.symbol_table.insert_id(buffer)
-            return (line_number_start, self.symbol_table.get_string_token_type(buffer), buffer)
+            return line_number_start, self.symbol_table.get_string_token_type(buffer), buffer
         else:
-            if self.dfa.error == True:
+            if self.dfa.error:
                 buffer += self.look_ahead
                 if self.dfa.error_message == 'Unclosed comment':
                     buffer = buffer[0: 7] + '...'
@@ -79,14 +79,14 @@ class Scanner:
                     buffer += self.look_ahead
                     self.move_look_ahead()
                 if self.dfa.get_token_type() != 'EOF':
-                    return (line_number_start, self.dfa.get_token_type(), buffer)
+                    return line_number_start, self.dfa.get_token_type(), buffer
                 else:
                     return None
 
     def get_all_tokens_and_export(self):
         while not self.reach_end_of_file:
             token = self.get_next_token()
-            if token != None:
+            if token is not None:
                 self.tokens.append(token)
 
         self.export_tokens()
@@ -100,7 +100,7 @@ class Scanner:
             for er in self.errors:
                 if line_nu == -1:
                     out_str += str(er[0]) + '.\t'
-                elif er[0] != line_nu :
+                elif er[0] != line_nu:
                     out_str += '\n' + str(er[0]) + '.\t'
                 line_nu = er[0]
                 out_str += '(' + er[1] + ', ' + er[2] + ') '
@@ -113,13 +113,13 @@ class Scanner:
     def export_tokens(self):
         line_number = -1
         is_first_file_line = True
-        
+
         out_str = ''
         for token in self.tokens:
             token_type = token[1]
             if token[1] != 'white_space' and token[1] != 'COMMENT':
                 if token[0] != line_number:
-                    if (is_first_file_line):
+                    if is_first_file_line:
                         out_str += str(token[0]) + '.\t'
                         is_first_file_line = False
                     else:
