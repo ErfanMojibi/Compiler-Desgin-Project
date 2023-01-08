@@ -63,6 +63,7 @@ class Scanner:
             self.symbol_table.insert_id(buffer)
             return line_number_start, self.symbol_table.get_string_token_type(buffer), buffer
         else:
+            # print(self.look_ahead)
             if self.dfa.error:
                 buffer += self.look_ahead
                 if self.dfa.error_message == 'Unclosed comment':
@@ -73,6 +74,7 @@ class Scanner:
                 # todo copy 
                 buffer = ''
                 self.move_look_ahead()
+
                 return None
             else:
                 if self.dfa.current_state in ['long_comment_2', 'line_comment_2', 'd_equ_symbol', 'symbol']:
@@ -81,12 +83,12 @@ class Scanner:
                 if self.dfa.get_token_type() != 'EOF':
                     return line_number_start, self.dfa.get_token_type(), buffer
                 else:
-                    return None
+                    return line_number_start, 'EOF', '$'
 
     def get_all_tokens_and_export(self):
         while not self.reach_end_of_file:
             token = self.get_next_token()
-            if token is not None:
+            if token is not None and token[1] != 'EOF':
                 self.tokens.append(token)
 
         self.export_tokens()
@@ -130,6 +132,3 @@ class Scanner:
         token_file.write(out_str)
         token_file.close()
 
-
-scanner = Scanner("input.txt", dfa)
-scanner.get_all_tokens_and_export()
