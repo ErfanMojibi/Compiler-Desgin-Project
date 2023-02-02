@@ -1,6 +1,6 @@
 import json as js
 from typing import Tuple, Any
-
+from CodeGen import CodeGenerator
 import anytree as at
 
 
@@ -26,6 +26,7 @@ class Parser:
         self.get_next_token = True
         self.token = ""
         self.errors = []
+        self.code_gen = CodeGenerator(self.scanner.symbol_table, self.grammar)
 
     @staticmethod
     def process_action_string(action_string: str) -> Tuple[str, str]:
@@ -78,6 +79,8 @@ class Parser:
 
         self.stack.append(to_reduce_nt)
         self.stack.append(self.where_to_goto(self.parse_table[self.stack[-2]].get(to_reduce_nt)))
+
+        self.code_gen.generate_code(self.token, rule_no)
 
         self.complete_token_stack.append(to_reduce_nt)
         self.complete_token_stack.append(
@@ -202,6 +205,8 @@ class Parser:
         while True:
             if not self.parse():
                 break
+        print(self.code_gen.export_PB())
+        print(self.scanner.symbol_table.table)
 
         with open("parse_tree.txt", "w") as f:
             if self.report_parse_tree:

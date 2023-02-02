@@ -1,4 +1,4 @@
-# group members: Alireza Haqi, Ali Rahmizad, Erfan Mojibi
+# group members: Erfan Mojibi
 from Scanner import Scanner
 from DFA import dfa
 from Parser import Parser, read_json
