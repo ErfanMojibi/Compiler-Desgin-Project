@@ -2,11 +2,11 @@ class SymbolTable:
 
     def __init__(self) -> None:
         self.keywords = ['if', 'else', 'void', 'int', 'while', 'break', 'switch', 'default', 'case', 'return', 'endif']
-        self.id = []
+        self.id = ['output']
         self.line_dict = dict()
         self.symbol_table_out = []
         self.table = dict()
-        self.table['output'] = {"type": "0", "address": "-2"}
+        self.table['output'] = {"type": "0", "address": -2}
 
     def get_string_token_type(self, string):
         if string in self.keywords:

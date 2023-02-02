@@ -205,8 +205,6 @@ class Parser:
         while True:
             if not self.parse():
                 break
-        print(self.code_gen.export_PB())
-        print(self.scanner.symbol_table.table)
 
         with open("parse_tree.txt", "w") as f:
             if self.report_parse_tree:

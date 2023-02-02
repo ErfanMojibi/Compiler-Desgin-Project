@@ -5,10 +5,12 @@ class CodeGenerator:
         self.temp_address = 500
         self.symbol_table = symbol_table
         self.grammar = grammar
+        self.break_temp_address = []
+        self.where_to_break = []
 
-    def get_temp(self, size=4):
-        self.temp_address += size
-        return self.temp_address - size
+    def get_temp(self, var_size=4):
+        self.temp_address += var_size
+        return self.temp_address - var_size
 
     def find_address(self, name):
         if name in self.symbol_table.table:
@@ -53,25 +55,27 @@ class CodeGenerator:
         self.pop_from_semantic_stack(2)
 
     def jpf_save(self):
-        print("semantic stack:", self.semantic_stack)
-        self.program_block[self.semantic_stack[-1]] = f'(JPF, {self.semantic_stack[-2]}, {len(self.program_block)}, )'
-        print()
+        self.program_block[
+            self.semantic_stack[-1]] = f'(JPF, {self.semantic_stack[-2]}, {len(self.program_block) + 1}, )'
+
         self.pop_from_semantic_stack(2)
 
         self.save()
 
     def jp(self):
-        self.program_block[self.semantic_stack[-1]] = f'(JP, {len(self.program_block)}, )'
+        self.program_block[self.semantic_stack[-1]] = f'(JP, {len(self.program_block)}, , )'
         self.pop_from_semantic_stack(1)
 
     def assign(self):
+        res = self.semantic_stack[-1]
         self.program_block.append(f'(ASSIGN, {self.semantic_stack[-1]}, {self.semantic_stack[-2]}, )')
         self.pop_from_semantic_stack(2)
+        self.semantic_stack.append(res)
 
     def declare(self):
         lexeme = self.semantic_stack[-1]
-        type = self.semantic_stack[-2]
-        print(self.semantic_stack)
+        var_type = self.semantic_stack[-2]
+        var_size = 4 if var_type == 'int' else 1
         address = self.get_temp(4)
         self.symbol_table.table[lexeme]["address"] = address
         self.program_block.append(f'(ASSIGN, #0, {address}, )')
@@ -101,7 +105,7 @@ class CodeGenerator:
         address1, address2 = self.semantic_stack[-1], self.semantic_stack[-3]
         op = self.semantic_stack[-2]
         temp = self.get_temp()
-        operation = 'EQ' if op == '=' else 'LT'
+        operation = 'EQ' if op == '==' else 'LT'
         self.program_block.append(f'({operation}, {address2}, {address1}, {temp})')
 
         self.pop_from_semantic_stack(3)
@@ -112,14 +116,41 @@ class CodeGenerator:
 
     def call(self):
         address = self.semantic_stack[-2]
-        if address == -1:
-            self.program_block.append(f'(PRINT, {self.semantic_stack[-1]}, )')
+        if address == -2:
+            self.program_block.append(f'(PRINT, {self.semantic_stack[-1]}, , )')
             self.pop_from_semantic_stack(1)
+
+    def while_start(self):
+        break_temp = self.get_temp()
+        self.break_temp_address.append(break_temp)
+        # save one empty place for break
+        self.program_block.append(f'(ASSIGN, #0, {break_temp}, )')
+        self.where_to_break.append(len(self.program_block))
+        self.program_block.append(None)
+
+        self.semantic_stack.append(len(self.program_block))
+        # self.semantic_stack.append(break_temp)
+
+    def while_end(self):
+        temp = self.get_temp()
+        pc = len(self.program_block)
+        self.program_block[self.semantic_stack[-1]] = f'(JPF, {self.semantic_stack[-2]}, {pc + 1}, )'
+        self.program_block.append(f'(JP, {self.semantic_stack[-3]}, , )')
+        self.program_block[self.where_to_break[-1]] = f'(ASSIGN, #{pc + 1}, {self.break_temp_address[-1]}, )'
+        self.pop_from_semantic_stack(3)
+
+        self.where_to_break.pop()
+        self.break_temp_address.pop()
+
+    def break_jp(self):
+        self.program_block.append(f'(JP, @{self.break_temp_address[-1]}, , )')
+
+    def while_condition(self):
+        self.save()
 
     def generate_code(self, token, rule_no):
         rule = self.grammar[rule_no]
         rule_rhs = rule[2:]
-        print(token)
         rule_no = int(rule_no)
         if rule_no == 67:  # p_id_index
             self.p_id_index(token)
@@ -140,9 +171,9 @@ class CodeGenerator:
         elif rule_no == 75:  # jpf_save
             self.jpf_save()
         elif rule_no == 76:  # while_start
-            pass
+            self.while_start()
         elif rule_no == 77:  # while_condition
-            pass
+            self.while_condition()
         elif rule_no == 78:  # switch_start
             pass
         elif rule_no == 6 or rule_no == 15 or rule_no == 16:  # declare for var_declaration and param
@@ -152,13 +183,13 @@ class CodeGenerator:
         elif rule_no == 28:  # pop_exp
             self.pop_exp()
         elif rule_no == 29:  # break_jp
-            pass
+            self.break_jp()
         elif rule_no == 31 or rule_no == 39:  # jpf
             self.jpf()
         elif rule_no == 32:  # jp
             self.jp()
         elif rule_no == 33:  # while_end
-            pass
+            self.while_end()
         elif rule_no == 42:  # assign
             self.assign()
         elif rule_no == 45:  # array_access
@@ -173,8 +204,10 @@ class CodeGenerator:
             self.call()
 
     def export_PB(self):
-        # with open('PB.txt', 'w') as f:
-        for index, line in enumerate(self.program_block):
-            # f.write(f'#{index} {line}')
-            print(f'#{index} {line}')
+        with open('output.txt', 'w') as f:
+            # print(self.program_block)
+            for index, line in enumerate(self.program_block):
+                f.write(f'   {line}\n')
+                # print(f'{index}    {line}')
+
     pass
