@@ -49,10 +49,8 @@ class CodeGenerator:
         for _ in range(size):
             self.program_block.append(None)
             self.semantic_stack.append(len(self.program_block) - 1)
-        print(self.semantic_stack)
 
     def jpf(self):
-        print(self.semantic_stack)
         self.program_block[self.semantic_stack[-1]] = f'(JPF, {self.semantic_stack[-2]}, {len(self.program_block)}, )'
         self.pop_from_semantic_stack(2)
 
@@ -255,12 +253,9 @@ class CodeGenerator:
         elif rule_no == 36:  # switch_end
             self.switch_end()
         elif rule_no == 81:  # case_condition
-            print("hello")
             self.case_condition(token[2])
 
     def export_PB(self):
         with open('output.txt', 'w') as f:
-            # print(self.program_block)
             for index, line in enumerate(self.program_block):
                 f.write(f'   {line}\n')
-                # print(f'{index}    {line}')
