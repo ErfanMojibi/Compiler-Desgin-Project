@@ -67,7 +67,7 @@ class CodeGenerator:
         self.pop_from_semantic_stack(1)
 
     def assign(self):
-        res = self.semantic_stack[-1]
+        res = self.semantic_stack[-2]
         self.program_block.append(f'(ASSIGN, {self.semantic_stack[-1]}, {self.semantic_stack[-2]}, )')
         self.pop_from_semantic_stack(2)
         self.semantic_stack.append(res)
@@ -76,7 +76,7 @@ class CodeGenerator:
         lexeme = self.semantic_stack[-1]
         var_type = self.semantic_stack[-2]
         var_size = 4 if var_type == 'int' else 1
-        address = self.get_temp(4)
+        address = self.get_temp(var_size)
         self.symbol_table.table[lexeme]["address"] = address
         self.program_block.append(f'(ASSIGN, #0, {address}, )')
         self.pop_from_semantic_stack(2)
@@ -86,7 +86,7 @@ class CodeGenerator:
         op = self.semantic_stack[-2]
         temp = self.get_temp()
         operation = 'ADD' if op == '+' else 'SUB'
-        self.program_block.append(f'({operation}, {address1}, {address2}, {temp})')
+        self.program_block.append(f'({operation}, {address2}, {address1}, {temp})')
 
         self.pop_from_semantic_stack(3)
         self.semantic_stack.append(temp)
@@ -95,7 +95,7 @@ class CodeGenerator:
         address1, address2 = self.semantic_stack[-1], self.semantic_stack[-3]
         op = self.semantic_stack[-2]
         temp = self.get_temp()
-        operation = 'MUL' if op == '*' else 'DIV'
+        operation = 'MULT' if op == '*' else 'DIV'
         self.program_block.append(f'({operation}, {address2}, {address1}, {temp})')
 
         self.pop_from_semantic_stack(3)
@@ -132,7 +132,6 @@ class CodeGenerator:
         # self.semantic_stack.append(break_temp)
 
     def while_end(self):
-        temp = self.get_temp()
         pc = len(self.program_block)
         self.program_block[self.semantic_stack[-1]] = f'(JPF, {self.semantic_stack[-2]}, {pc + 1}, )'
         self.program_block.append(f'(JP, {self.semantic_stack[-3]}, , )')
@@ -147,6 +146,30 @@ class CodeGenerator:
 
     def while_condition(self):
         self.save()
+
+    def declare_array(self):
+        lexeme = self.semantic_stack[-2]
+        var_type = self.semantic_stack[-3]
+        var_size = 4 if var_type == 'int' else 1
+        arr_len = self.semantic_stack[-1]
+        address = self.get_temp(int(arr_len[1:]) * var_size)
+        self.symbol_table.table[lexeme]["address"] = address
+        self.program_block.append(f'(ASSIGN, #0, {address}, )')
+        self.pop_from_semantic_stack(3)
+
+    def array_access(self):
+        address = self.semantic_stack[-2]
+        index = self.semantic_stack[-1]
+        if str(index).startswith('#'):
+            index_address = address + 4 * int(index[1:])
+            self.pop_from_semantic_stack(2)
+            self.semantic_stack.append(index_address)
+        else:
+            temp = self.get_temp()
+            self.program_block.append(f'(MULT, {index}, #4, {temp})')
+            self.program_block.append(f'(ADD, #{address}, {temp}, {temp})')
+            self.pop_from_semantic_stack(2)
+            self.semantic_stack.append(f'@{temp}')
 
     def generate_code(self, token, rule_no):
         rule = self.grammar[rule_no]
@@ -179,7 +202,7 @@ class CodeGenerator:
         elif rule_no == 6 or rule_no == 15 or rule_no == 16:  # declare for var_declaration and param
             self.declare()
         elif rule_no == 7:  # declare_array
-            pass
+            self.declare_array()
         elif rule_no == 28:  # pop_exp
             self.pop_exp()
         elif rule_no == 29:  # break_jp
@@ -193,7 +216,7 @@ class CodeGenerator:
         elif rule_no == 42:  # assign
             self.assign()
         elif rule_no == 45:  # array_access
-            pass
+            self.array_access()
         elif rule_no == 46:  # rel
             self.rel()
         elif rule_no == 50:  # add

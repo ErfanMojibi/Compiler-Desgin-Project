@@ -205,7 +205,7 @@ class Parser:
         while True:
             if not self.parse():
                 break
-
+        self.code_gen.export_PB()
         with open("parse_tree.txt", "w") as f:
             if self.report_parse_tree:
                 f.write(self.generate_parse_tree())
@@ -216,3 +216,5 @@ class Parser:
                 f.write("There is no syntax error.")
             else:
                 f.write("\n".join(self.errors))
+
+        self.scanner.export_errors()

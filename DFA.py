@@ -32,18 +32,17 @@ class DFA:
         self.token_types = token_types
 
     def move(self, current_input):
-        
         for transition in self.transition_function:
             if transition.start == self.current_state and transition.check_transition(current_input):
                 self.current_state = transition.end
                 self.error = transition.error
                 self.error_message = transition.error_message
                 return
-        
+
         if current_input == chr(5):
             self.current_state = 'EOF'
             return
-        
+
         if current_input not in alphabets and self.current_state != white_space:
             self.error = True
             self.error_message = 'Invalid input'
@@ -63,7 +62,7 @@ class DFA:
         self.current_state = self.start_state
 
 
-digits = {'0', '1', '2', '3', '4', '5', '8', '7', '8', '9'}
+digits = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'}
 letters = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
            'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
            'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'}
@@ -102,8 +101,8 @@ dfa_states_reminder = {
     'long_comment': 10,
     'long_comment_1': 14,
     'long_comment_2': 15,
-    'EOF' : 1000,
-    
+    'EOF': 1000,
+
     'unclosed_comment_2': 19,
 }
 transition_function = [
@@ -151,7 +150,8 @@ transition_function = [
 ]
 
 accept_states = ['unclosed_comment_2', 'long_comment_2', 'unclosed_comment', 'line_comment_2', 'star_ac', 'id_key_ac',
-                 'd_equ_symbol', 'num_ac', 'white_space_ac', 'symbol', 'equ_symbol_ac', 'division', 'EOF', 'invalid_input']
+                 'd_equ_symbol', 'num_ac', 'white_space_ac', 'symbol', 'equ_symbol_ac', 'division', 'EOF',
+                 'invalid_input']
 
 token_types = {'long_comment_2': 'COMMENT',
                'line_comment_2': 'COMMENT',
@@ -161,8 +161,8 @@ token_types = {'long_comment_2': 'COMMENT',
                'white_space_ac': 'white_space',
                'symbol': 'SYMBOL',
                'equ_symbol_ac': 'SYMBOL',
-               'd_equ_symbol' : 'SYMBOL',
+               'd_equ_symbol': 'SYMBOL',
                'division': 'SYMBOL',
-               'EOF' : 'EOF'
+               'EOF': 'EOF'
                }
 dfa = DFA(dfa_states_reminder.keys(), alphabets, transition_function, 's', accept_states, token_types)
